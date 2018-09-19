@@ -1,0 +1,61 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "bento/centos-7.5"
+  # If you run into issues with Ansible complaining about executable permissions,
+  # comment the following statement and uncomment the next one.
+  config.vm.synced_folder ".", "/vagrant"
+  # config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=700,fmode=600"]
+  config.vm.define :master1, primary: true do |master1|
+    master1.vm.network :forwarded_port, host: 8001, guest: 8001
+	master1.vm.network :forwarded_port, host: 443, guest: 443
+    master1.vm.network :forwarded_port, host: 2201, guest: 22, id: "ssh", auto_correct: true
+    master1.vm.network "private_network", ip: "192.168.22.164"
+	master1.vm.provider "virtualbox" do |v|
+		v.memory = 2048
+	end
+	master1.vm.hostname = "master1"
+	master1.vm.provision "shell", path: "bootstrap.sh"
+	master1.vm.provision "shell", path: "ha1.sh"
+	master1.vm.provision "shell", path: "install_ansible.sh"
+  end
+  config.vm.define :master2, primary: true do |master2|
+    master2.vm.network :forwarded_port, host: 2202, guest: 22, id: "ssh", auto_correct: true
+    master2.vm.network "private_network", ip: "192.168.22.165"
+	master2.vm.provider "virtualbox" do |v|
+		v.memory = 2048
+	end
+	master2.vm.hostname = "master2"
+	master2.vm.provision "shell", path: "bootstrap.sh"
+	master2.vm.provision "shell", path: "ha2.sh"
+  end
+  config.vm.define :node1 do |node1|
+    node1.vm.network :forwarded_port, host: 2203, guest: 22, id: "ssh", auto_correct: true
+    node1.vm.network "private_network", ip: "192.168.22.166"
+	node1.vm.provider "virtualbox" do |v|
+		v.memory = 1024
+	end
+    node1.vm.hostname = "node1"
+	node1.vm.provision "shell", path: "bootstrap.sh"
+  end
+  config.vm.define :node2 do |node2|
+    node2.vm.network :forwarded_port, host: 2204, guest: 22, id: "ssh", auto_correct: true
+    node2.vm.network "private_network", ip: "192.168.22.167"
+	node2.vm.provider "virtualbox" do |v|
+		v.memory = 1024
+	end
+    node2.vm.hostname = "node2"
+	node2.vm.provision "shell", path: "bootstrap.sh"
+  end
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :box
+  end
+# if Vagrant.has_plugin?("vagrant-proxyconf")
+#   config.proxy.http     = "http://proxy.company.com:8080/"
+#   config.proxy.https    = "http://proxy.company.com:8080/"
+#   config.proxy.no_proxy = "localhost,127.0.0.1"
+# end
+end
