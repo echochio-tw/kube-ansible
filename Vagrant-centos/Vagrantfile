@@ -34,6 +34,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :master1, primary: true do |master1|
     master1.vm.network :forwarded_port, host: 8001, guest: 8001
     master1.vm.network :forwarded_port, host: 443, guest: 443
+    master1.vm.network :forwarded_port, host: 30716, guest: 30716
     master1.vm.network :forwarded_port, host: 2201, guest: 22, id: "ssh", auto_correct: true
     master1.vm.network "private_network", ip: "192.168.22.164"
     master1.vm.hostname = "master1"
