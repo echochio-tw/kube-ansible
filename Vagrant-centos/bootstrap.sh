@@ -9,3 +9,4 @@ echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
 yum -y update
 setenforce 0
 sed -i --follow-symlinks 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/sysconfig/selinux
+swapoff -a
